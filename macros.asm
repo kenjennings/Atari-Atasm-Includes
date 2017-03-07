@@ -30,7 +30,7 @@
 
 	.MACRO loadPointer
 		.IF %0<>2
-			.ERROR "loadPopinter: incorrect number of arguments"
+			.ERROR "loadPointer: incorrect number of arguments"
 		.ELSE
 			lda #<%2
 			sta %1

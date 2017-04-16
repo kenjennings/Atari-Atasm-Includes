@@ -1,4 +1,4 @@
-;; ANTIC register list
+;; POKEY register list
 ;; For atasm
 ;; Ken Jennings
 ;;=================================================

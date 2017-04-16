@@ -1,4 +1,4 @@
-;; OS memory and vectors
+;; DOS, FMS, and DUP memory and vectors
 ;; For atasm
 ;; Ken Jennings
 ;;=================================================
@@ -21,4 +21,3 @@ LOMEM_DOS_DUP = $3308 ; First usable memory after DOS and DUP
 ;;
 DOS_RUN_ADDR =  $02e0 ;; Execute here when file loading completes.
 DOS_INIT_ADDR = $02e2 ;; Execute here immediately then resume loading.
-

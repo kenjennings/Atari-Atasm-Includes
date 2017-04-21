@@ -30,7 +30,7 @@
 ;=================================================
 LINZBS = $00 ; word
 
-CASINI = $02 ; word, Cassette initialization vector
+CASINI = $02 ; word, Cassette initialization vector (and trap RESET. See $09).
 RAMLO =  $04 ; word, power up memory test.  Disk boot address.
 
 CTAFLG = $06 ; nonzero value means Left/A cartridge present
@@ -40,9 +40,10 @@ WARMST = $08 ; Warmstart flag. 0 = powerup in progress. $FF normal reset occurre
 BOOT =   $09 ; Boot status. 0 = no boot.  
     ; 1 = disk boot OK.  do reset via DOSVEC
     ; 2 = cassette boot OK. do reset via CASINI
+	; 3 = both successful. (trap reset via CASINI).
 
 DOSVEC = $0A ; word. Entry vector for DOS (actually to start DUP.SYS).
-DOSINI = $0C ; word. Init address for DOS or Cassette RUN address.
+DOSINI = $0C ; word. Init address for DOS or Cassette RUN address. (also trap RESET with this).
 
 APPMHI = $0E ; word. Application high memory in use.
 
@@ -59,6 +60,7 @@ BRKKEY = $11 ; 0 = Break pressed.
 ; Likewise, when the value if $13 reaches $FF and it rolls 
 ; over to $00,then the value of $12 increments.
 ; $13 rollover/$12 increment occurs approximately every 18.2 minutes.
+; Jiffy count / 59.92334 for seconds.
 RTCLOK =   $12 ; and $13, and $14.  
 RTCLOK60 = $14 ; incremented every jiffy/frame.
 
@@ -104,7 +106,7 @@ DRETRY = $37 ; Device retries.  Usually $01.
 BUFRFL = $38 ; Flag buffer full. $FF is full.
 RECVDN = $39 ; Flag receive done. $FF is done.
 XMTDON = $3A ; Flag transmit done. $FF is done.
-CHKSNT = $3B ; Flag checksum sent. $FF is sent.
+CHKSNT = $3B ; Flag checksum sent. $FF is sent. $00 is not sent.
 NOCKSM = $3C ; Flag $00 = checksum follows data.  not zero = no checksum.
 
 BPTR =   $3D ; Index to data in cassette buffer. 
@@ -194,8 +196,8 @@ ENDPT =  $74 ; word.  S: end point for Drawto.  Copy of DELTAR or DELTAC
 
 DELTAR = $76 ; S: ABS( NEWROW - ROWCRS )
 DELTAC = $77 ; word.  S: ABS( NEWCOL - COLCRS )
-ROWINC = $79 ; S: Row +1 or -1
-COLINC = $7A ; S: Column +1 or -1
+ROWINC = $79 ; S: Row +/- (+1 or -1) 0 is down.  $FF is up.
+COLINC = $7A ; S: Column +/- (+1 or -1) 0 is right, $FF is left.
 
 SWPFLG = $7B ; S: text window swap control. 0 = graphics. $FF = text window.
 HOLDCH = $7C ; S: byte value for shifting.
@@ -224,8 +226,10 @@ RUNSTK = $8E ; word. BASIC Pointer to GOSUB/FOR-NEXT stack.
 MEMTP =  $90 ; word. BASIC pointer to end of user BASIC program.
 
 STOPLN = $92 ; word. BASIC line number where execution stopped due to Break key or error.
+PROMPT = $C2 ; Input prompt character.
 
-ERSAVE = $C3 ; BASIC error code for stop or TRAP.
+ERSAVE = $C3 ; BASIC error code for Stop or Trap.
+COLOR =  $C8 ; color for Plot or Drawto. (copied to $2F)
 
 PTABW =  $C9 ; BASIC tab width - number of columns between tab stops.
 
@@ -266,6 +270,35 @@ VSERIN = $020A ; word. POKEY serial I/O receive data ready interrupt vector
 VSEROR = $020C ; word. POKEY serial I/O transmit data ready interrupt vector
 VSEROC = $020E ; word. POKEY serial bus transmit complete interrupt vector.
 
+; HIGH FREQUENCY POKEY TIMERS: 
+; Per Mapping The Atari  
+; (Timer 1/Channel 1 as example)
+; 
+; Store frequency base in AUDCTL/$D208/53768: 
+;    $00 = 64 kilohertz, 
+;    $01 = 15 kilohertz, 
+;    $60 = 1.79 megahertz).
+; Next, set the channel control register (AUDC1/$D201/53761). 
+; Store address of interrupt routine into VTIMR1 ($210/$211). 
+; Store 0 to STIMER/$D209/53769. 
+; Enable the interrupt:
+;    Store in POKMSK/$10 the value of POKMSK OR the interrupt number:
+;       1 = timer 1 interrupt, 
+;       2 = timer 2 interrupt, 
+;       4 = timer 4 interrupt -- no timer 3!). 
+;    Store the same value in IRQEN/$D20E/53774.
+;
+; An interrupt occurs when the timer counts down to zero. 
+; The timer is reloaded with the original value stored there, 
+; and the process begins all over again.
+;
+; The OS pushes the A register onto the stack before jumping 
+; through the vector address. 
+; X and Y are not saved. Push them on the stack if they will be used. 
+; Before RTI/return from the interrupt:
+;    PLA the X and Y from the stack if used
+;    PLA the Accumulator, and 
+;    Clear the interrupt with CLI.
 VTIMR1 = $0210 ; word. POKEY timer 1 interrupt vector.
 VTIMR2 = $0212 ; word. POKEY timer 2 interrupt vector.
 VTIMR4 = $0214 ; word. POKEY timer 4 interrupt vector.
@@ -518,14 +551,19 @@ FPSCR1 = $05EC ; to $05FF -- FP temporary use
 CARTB =  $8000 ; Start of Cart B/Right Cart (8K)
 CRBSTA = $9FFA ; word. Cart B/Right Start address.
 CRBFLG = $9FFC ; Cart B/right present.  Copied to $7 CTBFLG
-CRBBTF = $9FFD ; Cart B/right Boot Option bits. $1 = boot disk. $4 = Boot cart.  $80 = diagnostic cart 
+CRBBTF = $9FFD ; Cart B/right Boot Option bits. $1 = boot disk. $4 = Boot cart. $80 = diagnostic cart 
 CRBINI = $9FFE ; word. Init address for Cart B/Right for cold boot/warm start
 
 CARTA =  $A000 ; Start of Cart A/Left Cart (8K)
 CRASTA = $BFFA ; word. Cart A/Left Start address.
 CRAFLG = $BFFC ; Cart A/Left present.  Copied to $6 CTAFLG
-CRABTF = $BFFD ; Cart A/Left Boot Option bits. $01 = boot disk. $04 = Boot cart.  $80 = diagnostic cart 
+CRABTF = $BFFD ; Cart A/Left Boot Option bits. $01 = boot disk. $04 = Boot cart. $80 = diagnostic cart 
 CRAINI = $BFFE ; word. Init address for Cart A/Left for cold boot/warm start
+
+;=================================================
+; XL OS ROM CSET 2 Pages $CC - $CF
+;=================================================
+ROM_CSET_2 = $CC00
 
 ;=================================================
 ; OS Floating Point Package 
@@ -607,3 +645,13 @@ SYSVBV = $E45F ; JMP to end user Immediate VBI
 ; User Deferred VBI routine should end by a JMP to this address 
 ; to continue the OS Vertical Blank routine. 
 XITVBV = $E462 ; JMP Vector to end user Deferred VBI
+
+WARMSV = $E474 ; Usr() here will warmstart.
+COLDSV = $E477 ; Usr() here to cold boot the system.
+
+; After this there is not much that a user program 
+; should reference or call.  
+; I/O should be done by CIO. 
+; Vertical Blank timers should be set by calling SETVBV.
+; Everything else is subject to change or reloaction 
+; in a future operating system.

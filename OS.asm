@@ -653,5 +653,5 @@ COLDSV = $E477 ; Usr() here to cold boot the system.
 ; should reference or call.  
 ; I/O should be done by CIO. 
 ; Vertical Blank timers should be set by calling SETVBV.
-; Everything else is subject to change or reloaction 
+; Everything else is subject to change or relocation 
 ; in a future operating system.

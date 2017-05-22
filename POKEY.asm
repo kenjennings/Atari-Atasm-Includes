@@ -30,7 +30,7 @@ POTGO =  $D20B ; Start the POT scan sequence
 ;;
 STIMER = $D209 ; Start timers
 KBCODE = $D209 ; (Read) Keyboard code
-RANDOM = $D208 ; (Read) Random number
+RANDOM = $D20A ; (Read) Random number
 ;;
 SKREST = $D20A ; Reset Serial Status (SKSTAT)
 SEROUT = $D20D ; Serial port data output
@@ -175,7 +175,7 @@ LAST_KEY_HELD =           ~00000100
 SERIAL_INPUT_NOT_BUSY =   ~00000000
 SERIAL_INPUT_BUSY =       ~00000010
 ;;
-;;POKMSK, IRQEN and IRQST
+;;IRQEN and IRQST
 MASK_IRQ_TIMER1 =           ~11111110
 MASK_IRQ_TIMER2 =           ~11111101
 MASK_IRQ_TIMER4 =           ~11111011

@@ -38,8 +38,8 @@ CTBFLG = $07 ; nonzero value means Right/B  cartridge present
 
 WARMST = $08 ; Warmstart flag. 0 = powerup in progress. $FF normal reset occurred.
 BOOT =   $09 ; Boot status. 0 = no boot.  
-    ; 1 = disk boot OK.  do reset via DOSVEC
-    ; 2 = cassette boot OK. do reset via CASINI
+	; 1 = disk boot OK.  do reset via DOSVEC
+	; 2 = cassette boot OK. do reset via CASINI
 	; 3 = both successful. (trap reset via CASINI).
 
 DOSVEC = $0A ; word. Entry vector for DOS (actually to start DUP.SYS).
@@ -525,6 +525,43 @@ IOCB7 = $03B0 ; IOCB for channel 7
 
 PRNBUF = $03C0 ; 40 bytes up to $3E7
 
+; CIO Common Device Commands
+CIO_OPEN =       $03
+CIO_GET_RECORD = $05
+CIO_GET_BYTES =  $07
+CIO_PUT_RECORD = $09
+CIO_PUT_BYTES =  $0B
+CIO_CLOSE =      $0C
+CIO_STATUS =     $0D
+
+; CIO Device Commands for D:
+CIO_D_RENAME = $20
+CIO_D_DELETE = $21
+CIO_D_LOCK =   $23
+CIO_D_UNLOCK = $24
+CIO_D_POINT =  $25
+CIO_D_NOTE =   $26
+CIO_D_FORMAT = $FE
+
+; CIO Device Commands for S:
+CIO_S_DRAWTO = $11
+CIO_S_FILL =   $12
+
+; ICAX1 Common Options (OPEN modes).
+CIO_ICAX_READ      = $04
+CIO_ICAX_WRITE     = $08 ; READ + WRITE starts I/O at first byte.
+
+; ICAX1 Less Common Options (OPEN modes.)
+CIO_ICAX_E_FORCED     = $01 ; E: FORCED input. Usually with READ + WRITE.
+CIO_ICAX_D_DIRECTORY  = $02 ; D: DIRECTORY.  Use with READ. 
+CIO_ICAX_APPEND       = $09 ; Write starts at end of file. (includes WRITE) May add READ. 
+CIO_ICAX_S_TEXTWINDOW = $10 ; S: Open graphics mode with text window. Ignored for 0, 9, 10, 11.
+CIO_ICAX_S_DONOTCLEAR = $20 ; S: Suppress clear screen for graphics mode. 
+
+; Note: 
+; The ICAX2 value for S: is the OS graphics mode number.
+; If the mode is 0, 9, 10, or 11 the text Window option is ignored.
+
 ;=================================================
 ; OS Page 4, 5, 6   
 ;=================================================
@@ -653,5 +690,5 @@ COLDSV = $E477 ; Usr() here to cold boot the system.
 ; should reference or call.  
 ; I/O should be done by CIO. 
 ; Vertical Blank timers should be set by calling SETVBV.
-; Everything else is subject to change or relocation 
+; Everything else is subject to change or reloaction 
 ; in a future operating system.

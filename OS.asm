@@ -457,7 +457,7 @@ CH1 =    $02F2 ; Keyboard character code previously in CH/$02FC.
 ; CHBAS = $02F4 in ANTIC.asm
 
 ATACHR = $02FA ; Last value read or written at graphics cursor.  Atascii in text modes. color number in others.  
-CH =     $02FC ; Internal keyboard code of last key pressed.  $FF is no key pressesd.
+; CH =     $02FC ; in POKEY.asm KBCODE - Internal keyboard code of last key pressed.  $FF is no key pressed.
 FILDAT = $02FD ; Color for the fill region.
 DSPFLG = $02FE ; E: config for cursor control characters. 0 = normal operation. !0 = Display cursor controls instead of acting on them.
 SSFLAG = $02FF ; Scrolling stop/start control. 0 = normal scrolling.  $FF = stop scrolling.

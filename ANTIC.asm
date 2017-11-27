@@ -144,3 +144,32 @@ DL_MAP_C = $0C ; 2 Color, 160 Pixels x 1 Scan Lines, 20 bytes/line
 DL_MAP_D = $0D ; 4 Color, 160 Pixels x 2 Scan Lines, 40 bytes/line
 DL_MAP_E = $0E ; 4 Color, 160 Pixels x 1 Scan Lines, 40 bytes/line
 DL_MAP_F = $0F ; 1.5 Color, 320 Pixels x 1 Scan Lines (and GTIA modes), 40 bytes/line
+;
+; Macros 
+;
+;-------------------------------------------------------------------------------
+; mDL_LMS <DLmode>, <Address>
+;
+; Declares data for the provided display list instruction, adds the LMS 
+; option, and then the supplied address in memory.
+;
+; Note that for validity checks it is only looking at the low nybble for
+; the graphics mode, and then it simply ORs in the LMS option.
+; This means the "mode" argument could include other options and
+; even (redundantly) the LMS.
+;-------------------------------------------------------------------------------
+
+	.macro mDL_LMS  ; Mode, Screen memory address
+		.if %0<>2
+			.error "mDL_LMS: 2 arguments required."
+		.else
+			MDL_TEMP .= %1&$0F
+			.if MDL_TEMP<DL_TEXT_2
+				.error "mDL_LMS: Argument 1 must be ANTIC Mode from $2 to $F."
+			.else 
+				; Byte for Mode plus LMS option.  And then the screen memory address.
+				.byte %1|DL_LMS
+				.word %2   
+			.endif
+		.endif
+	.endm

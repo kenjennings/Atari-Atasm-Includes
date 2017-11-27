@@ -19,7 +19,7 @@
 
 .macro mLoadInt
 	.IF %0<>2
-		.ERROR "LoadInt: 2 arguments required."
+		.ERROR "LoadInt: 2 arguments (dest addr, source addr) required."
 	.ELSE
 		lda %2
 		sta %1
@@ -45,7 +45,7 @@
 
 .macro mLoadIntP
 	.if %0<>2
-		.error "LoadIntP: 2 arguments required."
+		.error "LoadIntP: 2 arguments (dest addr, 16-bit value) required."
 	.else
 		lda #<%2
 		sta %1
@@ -62,7 +62,7 @@
 ; Forces the program address (*=) to the next nearest address 
 ; aligned to the specified BASE2 size.
 ; 
-; Size may be BASE2 number: 2, 4, 8, 16, 32... up to 16384 (16K).
+; Size must be BASE2 number: 2, 4, 8, 16, 32... up to 16384 (16K).
 ; 
 ; Typically would be used to align the current address to a page (256 bytes)
 ; or to 1K, 2K, 4K in preparation of defining various graphics resources.
@@ -80,63 +80,128 @@
 
 .macro mAlign
 	.if %0<>1
-		.error "Align: 1 argument required."
+		.error "Align: 1 argument (base 2 size) required."
 	.else
 		MALIGN_TEMP .= 0
-		.if %1 = ~0000000000000010 ; 2
+		.if %1=~0000000000000010 ; 2
 			MALIGN_TEMP .= ~1111111111111110
 		.endif
-		.if %1 = ~0000000000000100 ; 4
+		.if %1=~0000000000000100 ; 4
 			MALIGN_TEMP .= ~1111111111111100
 		.endif
-		.if %1 = ~0000000000001000 ; 8
+		.if %1=~0000000000001000 ; 8
 			MALIGN_TEMP .= ~1111111111111000
 		.endif
 
-		.if %1 = ~0000000000010000 ; 16
+		.if %1=~0000000000010000 ; 16
 			MALIGN_TEMP .= ~1111111111110000
 		.endif
-		.if %1 = ~0000000000100000 ; 32
+		.if %1=~0000000000100000 ; 32
+			MALIGN_TEMP .= ~1111111111100000
+		.endif
+		.if %1=~0000000001000000 ; 64
 			MALIGN_TEMP .= ~1111111111000000
 		.endif
-		.if %1 = ~0000000001000000 ; 64
+		.if %1=~0000000010000000 ; 128
 			MALIGN_TEMP .= ~1111111110000000
 		.endif
-		.if %1 = ~0000000010000000 ; 128
+
+		.if %1=~0000000100000000 ; 256
 			MALIGN_TEMP .= ~1111111100000000
 		.endif
-
-		.if %1 = ~0000000100000000 ; 256
+		.if %1=~0000001000000000 ; 512
 			MALIGN_TEMP .= ~1111111000000000
 		.endif
-		.if %1 = ~0000001000000000 ; 512
+		.if %1=~0000010000000000 ; 1024
 			MALIGN_TEMP .= ~1111110000000000
 		.endif
-		.if %1 = ~0000010000000000 ; 1024
+		.if %1=~0000100000000000 ; 2048
 			MALIGN_TEMP .= ~1111100000000000
 		.endif
-		.if %1 = ~0000100000000000 ; 2048
+
+		.if %1=~0001000000000000 ; 4096
 			MALIGN_TEMP .= ~1111000000000000
 		.endif
-
-		.if %1 = ~0001000000000000 ; 4096
+		.if %1=~0010000000000000 ; 8192
 			MALIGN_TEMP .= ~1110000000000000
 		.endif
-		.if %1 = ~0010000000000000 ; 8192
+		.if %1=~0100000000000000 ; 16384
 			MALIGN_TEMP .= ~1100000000000000
 		.endif
-		.if %1 = ~0100000000000000 ; 16384
-			MALIGN_TEMP .= ~1000000000000000
-		.endif
 
-		.if MALIGN_TEMP
-		 	*= [[*-1]&MALIGN_TEMP]+%1 	; Align to start of size
+		.if MALIGN_TEMP>0
+		 	*= [[*-1]&MALIGN_TEMP]+%1 	; Align to start of (next) size
 		.else
-			.error "Align: %1 argument is not a base 2 value."
+			.error "Align: Argument for size is not a base 2 value."
 		.endif
 	.endif
 .endm
 
+
+;-------------------------------------------------------------------------------
+;                                                                  DiskPoke
+;-------------------------------------------------------------------------------
+; mDiskPoke <Address> <byte value>
+;
+; Abuse the Atari's structure disk format to load a value into a memory
+; location at the program load time.
+;
+; I think I recall Mac/65 would keep writes like this in the order in 
+; which they occur.  But, it seems atasm collects (optimizes) these changes 
+; of current program address into groups.  Use with caution.  Your Mileage 
+; Will Definitely Vary.
+;
+; Maximum effectiveness using disk load would enable Title screens, 
+; animation, music, etc. at known locations/events while loading the 
+; main program.  Diong this with atasm  would require separate builds 
+; and then concatenating the programs together.
+;-------------------------------------------------------------------------------
+
+.macro mDiskPoke
+	.if %0<>2
+		.error "DiskPoke: 2 arguments (dest addr, byte value) required."
+	.else
+		.if %2>$FF
+			.error "DiskPoke: Agument 2 for byte value is greater then $FF"
+		.else
+			DISKPOKE_TEMP .= *
+			*=%1
+			.byte %2
+			*=DISKPOKE_TEMP
+		.endif
+	.endif
+.endm 
+
+
+;-------------------------------------------------------------------------------
+;                                                                  DiskDPoke
+;-------------------------------------------------------------------------------
+; mDiskDPoke <Address> <16-bit value>
+;
+; Abuse the Atari's structure disk format to load a 16-bit value into a memory
+; location at the program load time.
+;
+; I think I recall Mac/65 would keep writes like this in the order in 
+; which they occur.  But, it seems atasm collects (optimizes) these changes 
+; of current program address into groups.  Use with caution.  Your Mileage 
+; Will Definitely Vary.
+;
+; Maximum effectiveness using disk load would enable Title screens, 
+; animation, music, etc. at known locations/events while loading the 
+; main program.  Diong this with atasm  would require separate builds 
+; and then concatenating the programs together.
+;-------------------------------------------------------------------------------
+
+.macro mDiskDPoke
+	.if %0<>2
+		.error "DiskDPoke: 2 arguments (dest addr, integer value) required."
+	.else
+		DISKDPOKE_TEMP .= *
+		*=%1
+		.word %2
+		*=DISKDPOKE_TEMP
+	.endif
+.endm 
 
 
 ;-------------------------------------------------------------------------------
@@ -307,13 +372,12 @@
 ; diagnostic screen memory intended for display on the screen. 
 ;-------------------------------------------------------------------------------
 
-	.macro mDebugByte  ; Address, position offset
-		.if %0<>2
-			.error "DebugByte: 2 arguments required."
-		.else
-			lda %1   ; Load byte in address
-			ldy #%2  ; Load screen line X offset.
-			jsr DiagByte
-		.endif
-	.endm
-
+.macro mDebugByte  ; Address, position offset
+	.if %0<>2
+		.error "DebugByte: 2 arguments (address, screen X position) required."
+	.else
+		lda %1   ; Load byte in address
+		ldy #%2  ; Load screen line X offset.
+		jsr DiagByte
+	.endif
+.endm

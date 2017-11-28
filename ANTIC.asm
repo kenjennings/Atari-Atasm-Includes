@@ -159,17 +159,17 @@ DL_MAP_F = $0F ; 1.5 Color, 320 Pixels x 1 Scan Lines (and GTIA modes), 40 bytes
 ; even (redundantly) the LMS.
 ;-------------------------------------------------------------------------------
 
-	.macro mDL_LMS  ; Mode, Screen memory address
-		.if %0<>2
-			.error "mDL_LMS: 2 arguments required."
-		.else
-			MDL_TEMP .= %1&$0F
-			.if MDL_TEMP<DL_TEXT_2
-				.error "mDL_LMS: Argument 1 must be ANTIC Mode from $2 to $F."
-			.else 
-				; Byte for Mode plus LMS option.  And then the screen memory address.
-				.byte %1|DL_LMS
-				.word %2   
-			.endif
+.macro mDL_LMS  ; Mode, Screen memory address
+	.if %0<>2
+		.error "mDL_LMS: 2 arguments required."
+	.else
+		MDL_TEMP .= %1&$0F
+		.if MDL_TEMP<DL_TEXT_2
+			.error "mDL_LMS: Argument 1 must be ANTIC Mode from $2 to $F."
+		.else 
+			; Byte for Mode plus LMS option.  And then the screen memory address.
+			.byte %1|DL_LMS
+			.word %2   
 		.endif
-	.endm
+	.endif
+.endm

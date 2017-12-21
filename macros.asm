@@ -1,8 +1,14 @@
-;-------------------------------------------------------------------------------
+;===============================================================================
 ;	MACROS
-;-------------------------------------------------------------------------------
-; Helper macros to shorten repeditive tasks and make more readable code
-;-------------------------------------------------------------------------------
+;===============================================================================
+; Helper macros to shorten repetitive tasks and make more readable code
+;===============================================================================
+
+;===============================================================================
+; 16-BIT LOADS
+;===============================================================================
+; Load/move 16-bit values
+;===============================================================================
 
 ;-------------------------------------------------------------------------------
 ;                                                                  LOADINT   A
@@ -13,8 +19,8 @@
 ; 
 ; Can be used to assign an address to a page 0 location for 
 ; later indirect addressing.
-; In general, copies a 16-bit value to any address.
-; Like C = D.
+; In general, copies a 16-bit value to any address.   
+; Like (in C):  C = D.
 ;-------------------------------------------------------------------------------
 
 .macro mLoadInt
@@ -38,7 +44,7 @@
 ; Can be used to assign an address to a page 0 location for 
 ; later indirect addressing.
 ; In general, stores an immediate 16-bit value at any address.
-; Like:
+; Like (in C):
 ;  C = 12  or 
 ;  C = &D
 ;-------------------------------------------------------------------------------
@@ -53,6 +59,14 @@
 		sta %1 + 1
 	.endif
 .endm
+
+;===============================================================================
+; MEMORY
+;===============================================================================
+; Assembly Tricks...
+; 
+; Routine to force program address to next address aligned in memory.
+;===============================================================================
 
 ;-------------------------------------------------------------------------------
 ;                                                                  ALIGN
@@ -138,13 +152,24 @@
 .endm
 
 
-;-------------------------------------------------------------------------------
-;                                                                  DiskPoke
-;-------------------------------------------------------------------------------
-; mDiskPoke <Address> <byte value>
+;===============================================================================
+; DISK SHENANIGANS
+;===============================================================================
+; The Atari executable file is a structured format.  The file contents identify
+; starting address, ending address, and the data to load.  This feature 
+; ordinarily allows the assembler to optimize the file size by describing only
+; the segments of memory needed for the program.  However, it can also be
+; abused to set values into any memory location during the program load time,
+; such as the operating system shadow registers.  This allows the act of 
+; loading the program to also perform a degree of initialization that applies
+; configuration to the system without the program expending its own code 
+; space to load and store values.
 ;
-; Abuse the Atari's structure disk format to load a value into a memory
-; location at the program load time.
+; The assembler supports this simply by changing the program address *=
+; and then declaring storage (.byte, etc.)  These macros capture the 
+; current program address in a temporary variable, set the current
+; address,  declare the supplied value, then restore the program 
+; address to the originally captured value.
 ;
 ; I think I recall Mac/65 would keep writes like this in the order in 
 ; which they occur.  But, it seems atasm collects (optimizes) these changes 
@@ -153,8 +178,17 @@
 ;
 ; Maximum effectiveness using disk load would enable Title screens, 
 ; animation, music, etc. at known locations/events while loading the 
-; main program.  Diong this with atasm  would require separate builds 
+; main program.  Accomplishing this with atasm requires separate builds 
 ; and then concatenating the programs together.
+;===============================================================================
+
+;-------------------------------------------------------------------------------
+;                                                                  DiskPoke
+;-------------------------------------------------------------------------------
+; mDiskPoke <Address> <byte value>
+;
+; Utilize the Atari's structured disk format to load a BYTE value into a memory
+; location at the program load time.
 ;-------------------------------------------------------------------------------
 
 .macro mDiskPoke
@@ -172,24 +206,13 @@
 	.endif
 .endm 
 
-
 ;-------------------------------------------------------------------------------
 ;                                                                  DiskDPoke
 ;-------------------------------------------------------------------------------
 ; mDiskDPoke <Address> <16-bit value>
 ;
-; Abuse the Atari's structure disk format to load a 16-bit value into a memory
-; location at the program load time.
-;
-; I think I recall Mac/65 would keep writes like this in the order in 
-; which they occur.  But, it seems atasm collects (optimizes) these changes 
-; of current program address into groups.  Use with caution.  Your Mileage 
-; Will Definitely Vary.
-;
-; Maximum effectiveness using disk load would enable Title screens, 
-; animation, music, etc. at known locations/events while loading the 
-; main program.  Diong this with atasm  would require separate builds 
-; and then concatenating the programs together.
+; Utilize the Atari's structured disk format to load a 16-bit WORD value into a 
+; memory location at the program load time.
 ;-------------------------------------------------------------------------------
 
 .macro mDiskDPoke
@@ -204,15 +227,23 @@
 .endm 
 
 
+;===============================================================================
+; 6502 REGISTER MAINTENANCE
+;===============================================================================
+; Various shortcuts for managing 6502 A, X, Y registers typically used 
+; when entering/exiting interrupts.  
+;
+; Also, a couple routines for entry/exit from a routine called by JSR to 
+; preserve the registers and CPU flags, so the routine does not affect
+; the caller.
+;===============================================================================
+
 ;-------------------------------------------------------------------------------
-;                                                                  SAVEAY
+;                                                                  SAVEAY A Y
 ;-------------------------------------------------------------------------------
 ; mSaveAY 
 ;
 ; Save A, Y CPU registers on stack. 
-;
-; Used on entry into an interrupt, or for preserving
-; registers before entering a routine.
 ;-------------------------------------------------------------------------------
 
 .macro mSaveAY 
@@ -223,14 +254,11 @@
 .endm 
 
 ;-------------------------------------------------------------------------------
-;                                                                  SAVEAX
+;                                                                  SAVEAX A X
 ;-------------------------------------------------------------------------------
 ; mSaveAX
 ;
 ; Save A, Y CPU registers on stack. 
-;
-; Used on entry into an interrupt, or for preserving
-; registers before entering a routine.
 ;-------------------------------------------------------------------------------
 
 .macro mSaveAX
@@ -241,14 +269,11 @@
 .endm 
 
 ;-------------------------------------------------------------------------------
-;                                                                  SAVEAYX
+;                                                                  SAVEAYX A Y X
 ;-------------------------------------------------------------------------------
 ; mSaveAYX 
 ;
 ; Save A, Y, X CPU registers on stack. 
-;
-; Used on entry into an interrupt, or for preserving
-; registers before entering a routine.
 ;-------------------------------------------------------------------------------
 
 .macro mSaveAYX 
@@ -261,14 +286,11 @@
 .endm 
 
 ;-------------------------------------------------------------------------------
-;                                                                  RESTOREAY
+;                                                                  RESTOREAY A Y
 ;-------------------------------------------------------------------------------
 ; mRestoreAY
 ;
 ; Restore A, Y CPU registers from stack. 
-;
-; Used on exiting an interrupt, or for restoring 
-; registers before ending a routine.
 ;-------------------------------------------------------------------------------
 
 .macro mRestoreAY  
@@ -279,14 +301,11 @@
 .endm 
 
 ;-------------------------------------------------------------------------------
-;                                                                  RESTOREAX
+;                                                                  RESTOREAX A X
 ;-------------------------------------------------------------------------------
 ; mRestoreAX
 ;
 ; Restore A, X CPU registers from stack. 
-;
-; Used on exiting an interrupt, or for restoring 
-; registers before ending a routine.
 ;-------------------------------------------------------------------------------
 
 .macro mRestoreAX 
@@ -297,14 +316,11 @@
 .endm 
 
 ;-------------------------------------------------------------------------------
-;                                                                  RESTOREAYX
+;                                                               RESTOREAYX A X Y
 ;-------------------------------------------------------------------------------
 ; mRestoreAYX 
 ;
 ; Restore A, Y, X CPU registers from stack. 
-;
-; Used on exiting an interrupt, or for restoring 
-; registers before ending a routine.
 ;-------------------------------------------------------------------------------
 
 .macro mRestoreAYX 
@@ -317,7 +333,7 @@
 .endm 
 
 ;-------------------------------------------------------------------------------
-;                                                                  SAVEREGS
+;                                                               SAVEREGS A X Y P
 ;-------------------------------------------------------------------------------
 ; usage :
 ; mSaveRegs 
@@ -332,7 +348,7 @@
 .endm 
 
 ;-------------------------------------------------------------------------------
-;                                                                  SAFERTS
+;                                                                SAFERTS A X Y P
 ;-------------------------------------------------------------------------------
 ; mSafeRTS 
 ;
@@ -348,8 +364,6 @@
 	
 	RTS 
 .endm 
-
-
 
 
 

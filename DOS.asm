@@ -42,12 +42,12 @@ LOMEM_DOS =     $2000 ; First usable memory after DOS
 LOMEM_DOS_DUP = $3308 ; First usable memory after DOS and DUP 
 ;;
 ;; Atari RUN ADDRESS.  
-;; The binary load file has a segmented structure 
-;; specifying starting address, and ending address, 
-;; followed by the bytes to load in that memory range.  
+;; The binary load file has a segmented structure specifying
+;; starting address, and ending address, followed by the bytes 
+;; to load in that memory range.  
 ;; DOS observes two special addresses when loading data.
-;; If the contents of the INIT address changes ater loading
-;; a segment DOS calls that address immediately. If the routine
+;; If the contents of the INIT address changes after loading
+;; a segment DOS calls that address immediately. If that routine
 ;; returns to DOS cleanly then file loading continues.
 ;; If the contents of the RUN address changes DOS waits until
 ;; all segments from the file are loaded and then calls the RUN

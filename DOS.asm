@@ -1,7 +1,7 @@
-;; DOS, FMS, and DUP memory and vectors
-;; For atasm
-;; Ken Jennings
-;;=================================================
+; DOS, FMS, and DUP memory and vectors
+; For atasm
+; Ken Jennings
+;=================================================
 ; Page 7+ -- DOS FMS, DUP.SYS
 ; $0700 = Start of free memory when DOS is not loaded.
 ; Atari DOS2 speciications:
@@ -11,6 +11,7 @@
 ; $1A7C to $1D7B is Drive and Sector buffers.  Varies by amount allocated. 
 ; $1D7C to $3306 (max) non-resident DUP.SYS utilities.
 ;
+;=================================================
 ; Boot Sector in Memory
 ;
 BFLAG =   $0700 ; Boot Flag (0) 
@@ -35,23 +36,33 @@ BSIOR =   $0772 ; ? Entry point to FMS disk handler ?
 DFMSDH =  $07CB ; Entry point to 21-byte FMS device handler.
 DINT =    $07E0 ; FMS Initialization routine. 
 ;
-;;=================================================
-;; Misc values related to DOS and file loading
-;;
+;=================================================
+; Misc values related to DOS and file loading
+;
 LOMEM_DOS =     $2000 ; First usable memory after DOS
 LOMEM_DOS_DUP = $3308 ; First usable memory after DOS and DUP 
-;;
-;; Atari RUN ADDRESS.  
-;; The binary load file has a segmented structure specifying
-;; starting address, and ending address, followed by the bytes 
-;; to load in that memory range.  
-;; DOS observes two special addresses when loading data.
-;; If the contents of the INIT address changes after loading
-;; a segment DOS calls that address immediately. If that routine
-;; returns to DOS cleanly then file loading continues.
-;; If the contents of the RUN address changes DOS waits until
-;; all segments from the file are loaded and then calls the RUN
-;; address target.
-;;
-DOS_RUN_ADDR =  $02e0 ;; Execute here when file loading completes.
+;
+;=================================================
+; Atari RUN ADDRESS.  
+;
+; The binary load file has a structure specifying starting 
+; address, and ending address, followed by the bytes to 
+; load in that memory range.  This allows the executable
+; file to be optimized and contain only the data needed to 
+; load into different parts of memory rather than a flat
+; file used on other systems which must include all the
+; memeory, even the unused memory within the range of the 
+; program's minimum/maximum addresses.
+;
+; DOS observes two special addresses when loading data.
+; If the contents of the INIT address changes after loading
+; a segment DOS calls that address immediately. If that routine
+; returns to DOS cleanly then file loading continues.
+;
 DOS_INIT_ADDR = $02e2 ;; Execute here immediately then resume loading.
+;
+; If the contents of the RUN address changes DOS waits until
+; all segments from the file are loaded and then calls the RUN
+; address target.
+;
+DOS_RUN_ADDR =  $02e0 ;; Execute here when file loading completes.

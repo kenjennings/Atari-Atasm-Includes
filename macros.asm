@@ -215,16 +215,16 @@
 ; memory location at the program load time.
 ;-------------------------------------------------------------------------------
 
-.macro mDiskDPoke
-	.if %0<>2
-		.error "DiskDPoke: 2 arguments (dest addr, integer value) required."
-	.else
-		DISKDPOKE_TEMP .= *
-		*=%1
-		.word %2
-		*=DISKDPOKE_TEMP
-	.endif
-.endm 
+;.macro mDiskDPoke
+;	.if %0<>2
+;		.error "DiskDPoke: 2 arguments (dest addr, integer value) required."
+;	.else
+;		DISKDPOKE_TEMP .= *
+;		*=%1
+;		.word %2
+;		*=DISKDPOKE_TEMP
+;	.endif
+;.endm 
 
 
 ;===============================================================================

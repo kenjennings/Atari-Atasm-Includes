@@ -16,14 +16,14 @@
 ;===============================================================================
 ; 8-BIT MATH - ADDITION
 ;===============================================================================
-; mByte_M_eq_V_Plus_V
-; mByte_M_eq_M_Plus_V
-; mByte_M_eq_V_Plus_M
-; mByte_M_eq_M_Plus_M
+; mByte_M_eq_V_Add_V
+; mByte_M_eq_M_Add_V
+; mByte_M_eq_V_Add_M
+; mByte_M_eq_M_Add_M
 ; mByte_Add
 ; 
 ;===============================================================================
-; 8-BIT MATH - ADDITION
+; 8-BIT MATH - SUBTRACTION
 ;===============================================================================
 ; mByte_M_eq_V_Sub_V
 ; mByte_M_eq_M_Sub_V
@@ -32,16 +32,27 @@
 ; mByte_Sub
 ;
 ;===============================================================================
-; 16-BIT MATH - SUBTRACTION
+; 8-BIT MATH - OTHER TRICKS
 ;===============================================================================
-; mWord_M_eq_V_Plus_V
-; mWord_M_eq_M_Plus_V
-; mWord_M_eq_V_Plus_M
-; mWord_M_eq_M_Plus_M
+; mByte_M_Abs_M
+; mByte_M_Abs_V
+; mByte_Abs
+;
+;===============================================================================
+
+        
+
+;===============================================================================
+; 16-BIT MATH - ADDITION
+;===============================================================================
+; mWord_M_eq_V_Add_V
+; mWord_M_eq_M_Add_V
+; mWord_M_eq_V_Add_M
+; mWord_M_eq_M_Add_M
 ; mWord_Add
 ; 
 ;===============================================================================
-; 16-BIT MATH - ADDITION
+; 16-BIT MATH - SUBTRACTION
 ;===============================================================================
 ; mWord_M_eq_V_Sub_V
 ; mWord_M_eq_M_Sub_V
@@ -60,7 +71,7 @@
 ;-------------------------------------------------------------------------------
 ;                                                        BYTE_M_EQ_V_PLUS_V   A
 ;-------------------------------------------------------------------------------
-; mByte_M_eq_V_Plus_V <result (address)>, <value1>, <value2>
+; mByte_M_eq_V_Add_V <result (address)>, <value1>, <value2>
 ;
 ; Add literal <Value2> plus literal <Value1>, store in <Result (address)>.
 ;
@@ -70,9 +81,9 @@
 ; or (more exactly) 
 ; Poke result, Value1 + Value2
 ;-------------------------------------------------------------------------------
-.macro mByte_M_eq_V_Plus_V
+.macro mByte_M_eq_V_Add_V
 	.if %0<>3
-		.error "mByte_M_eq_V_Plus_V: 3 arguments (result addr, value1, value2) required."
+		.error "mByte_M_eq_V_Add_V: 3 arguments (result addr, value1, value2) required."
 	.else
 		clc        ; clear carry/borrow
 		lda #<%2   ; Low byte of Value1
@@ -85,7 +96,7 @@
 ;-------------------------------------------------------------------------------
 ;                                                        BYTE_M_EQ_M_PLUS_V   A
 ;-------------------------------------------------------------------------------
-; mByte_M_eq_M_Plus_V <result (address)>, <address>, <value>
+; mByte_M_eq_M_Add_V <result (address)>, <address>, <value>
 ;
 ; Add literal <Value> from value at <Address>, store in <Result (address)>.
 ;
@@ -95,9 +106,9 @@
 ; or (more exactly) 
 ; Poke result, Peek(address) + Value 
 ;-------------------------------------------------------------------------------
-.macro mByte_M_eq_M_Plus_V
+.macro mByte_M_eq_M_Add_V
   .if %0<>3
-    .error "mByte_M_eq_M_Plus_V: 3 arguments (result addr, addr, value) required."
+    .error "mByte_M_eq_M_Add_V: 3 arguments (result addr, addr, value) required."
   .else
     clc        ; clear carry/borrow
     lda %2     ; Low byte of Address
@@ -110,7 +121,7 @@
 ;-------------------------------------------------------------------------------
 ;                                                        BYTE_M_EQ_V_PLUS_M   A
 ;-------------------------------------------------------------------------------
-; mByte_M_eq_V_Plus_M <result (address)>, <value>, <address>
+; mByte_M_eq_V_Add_M <result (address)>, <value>, <address>
 ;
 ; Add value at <Address> from literal <Value>, store in <Result (address)>.
 ;
@@ -120,9 +131,9 @@
 ; or (more exactly) 
 ; Poke result, Value + Peek(address)
 ;-------------------------------------------------------------------------------
-.macro mByte_M_eq_V_Plus_M
+.macro mByte_M_eq_V_Add_M
   .if %0<>3
-    .error "mByte_M_eq_V_Plus_M: 3 arguments (result addr, value, addr) required."
+    .error "mByte_M_eq_V_Add_M: 3 arguments (result addr, value, addr) required."
   .else
     clc        ; clear carry/borrow
     lda #<%2   ; Low byte of Value
@@ -134,7 +145,7 @@
 ;-------------------------------------------------------------------------------
 ;                                                        BYTE_M_EQ_M_PLUS_M   A
 ;-------------------------------------------------------------------------------
-; mByte_M_eq_M_Plus_M <result (address)>, <address1>, <address2>
+; mByte_M_eq_M_Add_M <result (address)>, <address1>, <address2>
 ;
 ; Add value at <address2> from value at <Address1>, store in <Result (address)>.
 ;
@@ -144,9 +155,9 @@
 ; or (more exactly) 
 ; Poke result, Peek(address1) + Peek(address2) 
 ;-------------------------------------------------------------------------------
-.macro mByte_M_eq_M_Plus_M
+.macro mByte_M_eq_M_Add_M
   .if %0<>3
-    .error "mByte_M_eq_M_Plus_M: 3 arguments (result addr, addr1, addr2) required."
+    .error "mByte_M_eq_M_Add_M: 3 arguments (result addr, addr1, addr2) required."
   .else
     clc        ; clear carry/borrow
     lda %2     ; Low byte of Address
@@ -183,15 +194,15 @@
 	.else
 		.if %2>255 .OR %1=%2 ; arg1 = M and allowing for X = X + Y
 			.if %3>255 ; arg2 = M
-				mByte_M_eq_M_Plus_M %1, %2, %3 ; M = M + M
+				mByte_M_eq_M_Add_M %1, %2, %3 ; M = M + M
 			.else ; arg2 = V
-				mByte_M_eq_M_Plus_V %1, %2, %3 ; M = M + V
+				mByte_M_eq_M_Add_V %1, %2, %3 ; M = M + V
 			.endif
 		.else     ; arg1 =  V
 			.if %3>255 ; arg2 = M
-				mByte_M_eq_V_Plus_M %1, %2, %3 ; M = V + M
+				mByte_M_eq_V_Add_M %1, %2, %3 ; M = V + M
 			.else ; arg2 = V
-				mByte_M_eq_V_Plus_V %1, %2, %3 ; M = V + V
+				mByte_M_eq_V_Add_V %1, %2, %3 ; M = V + V
 			.endif
 		.endif
 	.endif
@@ -345,6 +356,104 @@
 
 
 ;===============================================================================
+; 8-BIT MATH - OTHER TRICKS
+;===============================================================================
+; mByte_M_Abs_M
+; mByte_M_Abs_V
+; mByte_Abs
+;
+;===============================================================================
+
+;-------------------------------------------------------------------------------
+;                                                         BYTE_M_ABS_M   A
+;-------------------------------------------------------------------------------
+; mByte_M_Abs_M <result (address)>, <argument1>
+;
+; Store in result location the Absolute value of the byte at the 
+; argument 1 address.
+; 
+; Like:
+; RESULT = ABS(X)
+; 
+; Or:
+; POKE RESULT, ABS(PEEK(X))
+;-------------------------------------------------------------------------------
+
+.macro mByte_M_Abs_M
+    .if %0<>2
+        .error "mByte_M_Abs_M: 2 arguments (result addr, addr1) required."
+    .else
+        lda %2     ; byte at address
+        bpl @abs_plus ; positive
+        eor #$FF   ; negative.  Exclusive OR bits
+        sta %1     ; save result
+        inc %1     ; Two's compliment is +1
+        jmp @abs_done ; no branch is reliable after the inc.
+@abs_plus
+        sta %1     ; save result
+@abs_done
+.endm
+
+;-------------------------------------------------------------------------------
+;                                                         BYTE_M_ABS_V   A
+;-------------------------------------------------------------------------------
+; mByte_M_Abs_V <result (address)>, <argument1>
+;
+; Store in result location the Absolute value of the argument 1 byte.
+; 
+; Like:
+; RESULT = ABS(X)
+; 
+; Or:
+; POKE RESULT, ABS(X)
+;-------------------------------------------------------------------------------
+
+.macro mByte_M_Abs_V
+    .if %0<>2
+        .error "mByte_M_Abs_V: 2 arguments (result addr, byte) required."
+    .else
+        lda #%2     ; byte
+        bpl @abs_plus ; positive
+        eor #$FF   ; negative.  Exclusive OR bits
+        sta %1     ; save result
+        inc %1     ; Two's compliment is +1
+        jmp @abs_done ; no branch is reliable after the inc.
+@abs_plus
+        sta %1     ; save result
+@abs_done
+    .endif
+.endm
+
+;-------------------------------------------------------------------------------
+;                                                         BYTE_ABS   A
+;-------------------------------------------------------------------------------
+; mByte_Abs <result (address)>, <argument1>
+;
+; Store in result location the Absolute value of the argument1.
+; If the argument1 is the same value as the result it is treated as an address.
+; If the argument1 is different from the result OR it is greater than 255 then
+; the argument1 is treated as an address.
+; Otherwise the argument is treated as an explicit byte value.
+;
+;-------------------------------------------------------------------------------
+
+.macro mByte_Abs
+    .if %0<>2
+        .error "mByte_Abs: 2 arguments (result addr, argument1) required."
+    .else
+        .if %2>255 .OR %1=%2 ; arg1 = M 
+			mByte_M_Abs_M %1, %2 ; M = Abs(M)
+		.else ; arg2 = V
+			mByte_M_Abs_V %1, %2 ; M = Abs(V)
+		.endif
+	.endif
+.endm
+
+        
+        
+        
+
+;===============================================================================
 ; 16-BIT MATH - ADDITION
 ;===============================================================================
 ; 
@@ -353,7 +462,7 @@
 ;-------------------------------------------------------------------------------
 ;                                                        WORD_M_EQ_V_PLUS_V   A
 ;-------------------------------------------------------------------------------
-; mWord_M_eq_V_Plus_V <result (address)>, <value1>, <value2>
+; mWord_M_eq_V_Add_V <result (address)>, <value1>, <value2>
 ;
 ; Add literal <Value2> from literal <Value1>, store in <Result (address)>.
 ;
@@ -363,9 +472,9 @@
 ; or (more exactly) 
 ; Dpoke result, Value1 + Value2
 ;-------------------------------------------------------------------------------
-.macro mWord_M_eq_V_Plus_V
+.macro mWord_M_eq_V_Add_V
   .if %0<>3
-    .error "mWord_M_eq_V_Plus_V: 3 arguments (result addr, value1, value2) required."
+    .error "mWord_M_eq_V_Add_V: 3 arguments (result addr, value1, value2) required."
   .else
     clc        ; clear carry/borrow
     lda #<%2   ; Low byte of Value1
@@ -381,7 +490,7 @@
 ;-------------------------------------------------------------------------------
 ;                                                        WORD_M_EQ_M_PLUS_V   A
 ;-------------------------------------------------------------------------------
-; mWord_M_eq_M_Plus_V <result (address)>, <address>, <value>
+; mWord_M_eq_M_Add_V <result (address)>, <address>, <value>
 ;
 ; Add literal <Value> from value at <Address>, store in <Result (address)>.
 ;
@@ -391,9 +500,9 @@
 ; or (more exactly) 
 ; Dpoke result, Dpeek(address) + Value 
 ;-------------------------------------------------------------------------------
-.macro mWord_M_eq_M_Plus_V
+.macro mWord_M_eq_M_Add_V
   .if %0<>3
-    .error "mWord_M_eq_M_Plus_V: 3 arguments (result addr, addr, value) required."
+    .error "mWord_M_eq_M_Add_V: 3 arguments (result addr, addr, value) required."
   .else
     clc        ; clear carry/borrow
     lda %2     ; Low byte of Address
@@ -409,7 +518,7 @@
 ;-------------------------------------------------------------------------------
 ;                                                        WORD_M_EQ_V_PLUS_M   A
 ;-------------------------------------------------------------------------------
-; mWord_M_eq_V_Plus_M <result (address)>, <value>, <address>
+; mWord_M_eq_V_Add_M <result (address)>, <value>, <address>
 ;
 ; Add value at <Address> from literal <Value>, store in <Result (address)>.
 ;
@@ -419,9 +528,9 @@
 ; or (more exactly) 
 ; Dpoke result, Value + Dpeek(address)
 ;-------------------------------------------------------------------------------
-.macro mWord_M_eq_V_Plus_M
+.macro mWord_M_eq_V_Add_M
   .if %0<>3
-    .error "mWord_M_eq_V_Plus_M: 3 arguments (result addr, value, addr) required."
+    .error "mWord_M_eq_V_Add_M: 3 arguments (result addr, value, addr) required."
   .else
     clc        ; clear carry/borrow
     lda #<%2   ; Low byte of Value
@@ -436,7 +545,7 @@
 ;-------------------------------------------------------------------------------
 ;                                                        WORD_M_EQ_M_PLUS_M   A
 ;-------------------------------------------------------------------------------
-; mWord_M_eq_M_Plus_M <result (address)>, <address1>, <address2>
+; mWord_M_eq_M_Add_M <result (address)>, <address1>, <address2>
 ;
 ; Add value at <address2> from value at <Address1>, store in <Result (address)>.
 ;
@@ -446,9 +555,9 @@
 ; or (more exactly) 
 ; Dpoke result, Dpeek(address1) + Dpeek(address2) 
 ;-------------------------------------------------------------------------------
-.macro mWord_M_eq_M_Plus_M
+.macro mWord_M_eq_M_Add_M
   .if %0<>3
-    .error "mWord_M_eq_M_Plus_M: 3 arguments (result addr, addr1, addr2) required."
+    .error "mWord_M_eq_M_Add_M: 3 arguments (result addr, addr1, addr2) required."
   .else
     clc        ; clear carry/borrow
     lda %2     ; Low byte of Address
@@ -489,15 +598,15 @@
 	.else
 		.if %2>255 .OR %1=%2 ; arg1 = M and allowing for X = X + Y
 			.if %3>255 ; arg2 = M
-				mWord_M_eq_M_Plus_M %1, %2, %3 ; M = M + M
+				mWord_M_eq_M_Add_M %1, %2, %3 ; M = M + M
 			.else ; arg2 = V
-				mWord_M_eq_M_Plus_V %1, %2, %3 ; M = M + V
+				mWord_M_eq_M_Add_V %1, %2, %3 ; M = M + V
 			.endif
 		.else     ; arg1 =  V
 			.if %3>255 ; arg2 = M
-				mWord_M_eq_V_Plus_M %1, %2, %3 ; M = V + M
+				mWord_M_eq_V_Add_M %1, %2, %3 ; M = V + M
 			.else ; arg2 = V
-				mWord_M_eq_V_Plus_V %1, %2, %3 ; M = V + V
+				mWord_M_eq_V_Add_V %1, %2, %3 ; M = V + V
 			.endif
 		.endif
 	.endif

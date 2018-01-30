@@ -4,10 +4,10 @@
 ; Helper macros to shorten repetitive tasks and make more readable code
 ;
 ;===============================================================================
-; 16-BIT LOADS -  Load/move 16-bit values
+; 16-BIT DATA -  Store/copy 16-bit values
 ;===============================================================================
-; mLoadInt
-; mLoadIntP
+; mStoreWordA (Absolute Address)
+; mStoreWordI (Immediate)
 ;
 ;===============================================================================
 ; MEMORY
@@ -17,8 +17,8 @@
 ;===============================================================================
 ; DISK SHENANIGANS
 ;===============================================================================
-; mDiskPoke <Address> <byte value>
-; mDiskDPoke
+; mDiskPoke (Byte)
+; mDiskDPoke (Word)
 ;
 ;===============================================================================
 ; 6502 REGISTER MAINTENANCE
@@ -33,6 +33,11 @@
 ; mSafeRTS
 ;
 ;===============================================================================
+; INTERRUPTS
+;===============================================================================
+; mDLIChain 
+;
+;===============================================================================
 ; DIAG
 ;===============================================================================
 ; mDebugByte 
@@ -41,27 +46,28 @@
 
 
 ;===============================================================================
-; 16-BIT LOADS
+; 16-BIT DATA 
 ;===============================================================================
-; Load/move 16-bit values
+; Store/Copy 16-bit values
 ;===============================================================================
 
 ;-------------------------------------------------------------------------------
-;                                                                  LOADINT   A
+;                                                                  STOREWORDA   A
 ;-------------------------------------------------------------------------------
-; mLoadInt <Destination Address>, <Source Address>
+; mStoreWordA <Destination Address>, <Source Address>
 ;
-; Loads the 16-bit value stored at <Source Address> into <Destination Address>.
+; Stores the 16-bit value at <Source Address> into <Destination Address>. 
 ; 
-; Can be used to assign an address to a page 0 location for 
-; later indirect addressing.
-; In general, copies a 16-bit value to any address.   
 ; Like (in C):  C = D.
+; 
+; Or more like:  *C = *D
+;
+; Or in BASIC XL:  Dpoke C, Dpeek(D)
 ;-------------------------------------------------------------------------------
 
-.macro mLoadInt
+.macro mStoreWordA
 	.IF %0<>2
-		.ERROR "LoadInt: 2 arguments (dest addr, source addr) required."
+		.ERROR "mStoreWordA: 2 arguments (dest addr, source addr) required."
 	.ELSE
 		lda %2
 		sta %1
@@ -70,24 +76,31 @@
 	.ENDIF
 .endm
 
-;-------------------------------------------------------------------------------
-;                                                                  LOADINTP  A
-;-------------------------------------------------------------------------------
-; mLoadIntP <Destination Address>, <Value/Address/Pointer>
+; Old synonym
 ;
-; Loads the immediate 16-bit <Value/Address/Pointer> into <Destination Address>.
-; 
-; Can be used to assign an address to a page 0 location for 
-; later indirect addressing.
-; In general, stores an immediate 16-bit value at any address.
+.macro mLoadInt
+	mStoreWordA %1, %2
+.endm
+
+;-------------------------------------------------------------------------------
+;                                                                  STOREWORDI  A
+;-------------------------------------------------------------------------------
+; mStoreWordI <Destination Address>, <Value>
+;
+; Loads the immediate 16-bit <Value> into the <Destination Address>.
+;
+; (Or should this be Store
+;
 ; Like (in C):
 ;  C = 12  or 
 ;  C = &D
+;
+; In BASIC XL:  Dpoke C, D
 ;-------------------------------------------------------------------------------
 
-.macro mLoadIntP
+.macro mStoreWordI
 	.if %0<>2
-		.error "LoadIntP: 2 arguments (dest addr, 16-bit value) required."
+		.error "mStoreWordI: 2 arguments (dest addr, 16-bit value) required."
 	.else
 		lda #<%2
 		sta %1
@@ -96,12 +109,18 @@
 	.endif
 .endm
 
+; Old synonym
+;
+.macro mLoadIntP
+	mStoreWordI %1, %2
+.endm
+
 ;===============================================================================
 ; MEMORY
 ;===============================================================================
-; Assembly Tricks...
+; Assembler Tricks...
 ; 
-; Routine to force program address to next address aligned in memory.
+; Force program address to next address aligned to a border in memory.
 ;===============================================================================
 
 ;-------------------------------------------------------------------------------
@@ -114,18 +133,24 @@
 ; 
 ; Size must be BASE2 number: 2, 4, 8, 16, 32... up to 16384 (16K).
 ; 
-; Typically would be used to align the current address to a page (256 bytes)
-; or to 1K, 2K, 4K in preparation of defining various graphics resources.
+; Typically would be used to align the current address to a page 
+; (256 bytes) or to 1K, 2K, 4K in preparation for declaring space 
+; for various graphics resources.
 ;
-; Note that if the current location is at correct alignment the 
-; normal treatment would have advanced the program counter to the
-; next aligned increment.  The adjustment subtracts a byte from 
-; the program address and then applies the shift to the next 
-; aligned size which is the current location.
+; NOTE!!  If the current location is at the correct alignment the 
+; macro does NOT move to the next aligned location. 
+; The normal treatment would have advanced the program counter to the
+; next aligned increment.  This would create potentially unintended, 
+; unused "holes" in the memory map.    
+; The macro works by subtracting a byte from the program address and 
+; then applies the shift to the next aligned size which then returns 
+; to the current location.
 ;
-; Yes, I clearly see the obvious pattern here, but can't work out 
+; Yes, I clearly see the obvious pattern below, but can't work out 
 ; how to do this in a more clever way.  So, a lot of separate 
 ; .IF/.ENDIF blocks.
+; The input must be limited to a base 2 value, and the mask is 
+; shifted per each value.  
 ;-------------------------------------------------------------------------------
 
 .macro mAlign
@@ -178,6 +203,8 @@
 		.if %1=~0100000000000000 ; 16384
 			MALIGN_TEMP .= ~1100000000000000
 		.endif
+		
+		; Really?  More?  Do you know how many 32K boundaries are in 64K?
 
 		.if MALIGN_TEMP>0
 		 	*= [[*-1]&MALIGN_TEMP]+%1 	; Align to start of (next) size
@@ -207,15 +234,21 @@
 ; address,  declare the supplied value, then restore the program 
 ; address to the originally captured value.
 ;
-; I think I recall Mac/65 would keep writes like this in the order in 
-; which they occur.  But, it seems atasm collects (optimizes) these changes 
-; of current program address into groups.  Use with caution.  Your Mileage 
-; Will Definitely Vary.
+; Effective use of the disk load feature allows presentation of title screens, 
+; animation, music, etc. during the time the main program is loading.
 ;
-; Maximum effectiveness using disk load would enable Title screens, 
-; animation, music, etc. at known locations/events while loading the 
-; main program.  Accomplishing this with atasm requires separate builds 
-; and then concatenating the programs together.
+; Mac/65 keeps program location changes in the order in which they occur
+; in the assembly source. But, atasm collects, sorts, and optimizes the 
+; program location changes. 
+; 
+; If the atasm behavior is undesirable, then there are two solutions:
+; * Use .bank which prevents declarations after the .bank from being mixed 
+;   with declarations before the .bank.
+; * Build separately, and then use the DOS Append function to merge the 
+;   separately generated executable files. 
+; 
+
+;
 ;===============================================================================
 
 ;-------------------------------------------------------------------------------
@@ -400,6 +433,30 @@
 	
 	RTS 
 .endm 
+
+;===============================================================================
+; INTERRUPTS
+;===============================================================================
+
+;-------------------------------------------------------------------------------
+;                                                               DLICHAIN A 
+;-------------------------------------------------------------------------------
+; mDLIChain <address from current DLI> <address to next DLI>
+;
+; Sets new VDSLST vector for the next Display List Interrupt.
+;
+; If the high byte is the same do not change it.
+;
+;-------------------------------------------------------------------------------
+
+.macro mDLIChain
+	lda #<%2
+	sta VDSLST
+	.if [>%1]=[>%2]
+		lda #>%2
+		sta VDSLST + 1
+	.endif
+.endm
 
 
 

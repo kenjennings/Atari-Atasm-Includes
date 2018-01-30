@@ -174,7 +174,7 @@
 ; Add value at <argument2> to value at/of <argument1>, 
 ; store in <Result (address)>.
 ;
-; This provides a wrapper that figured out which math macro to call
+; This provides a wrapper that figures out which math macro to call
 ; simplifying the choice of M and V.
 ;
 ; If argument2 is a value less than 256 it will assume that argument2
@@ -320,7 +320,7 @@
 ; Subtract value at <argument2> from value at/of <argument1>, 
 ; store in <Result (address)>.
 ;
-; This provides a wrapper that figured out which math macro to call
+; This provides a wrapper that figures out which math macro to call
 ; simplifying the choice of M and V.
 ;
 ; If argument2 is a value less than 256 it will assume that argument2
@@ -430,9 +430,11 @@
 ; mByte_Abs <result (address)>, <argument1>
 ;
 ; Store in result location the Absolute value of the argument1.
+;
 ; If the argument1 is the same value as the result it is treated as an address.
-; If the argument1 is different from the result OR it is greater than 255 then
-; the argument1 is treated as an address.
+;
+; If the argument1 is greater than 255 then it is treated as an address.
+;
 ; Otherwise the argument is treated as an explicit byte value.
 ;
 ;-------------------------------------------------------------------------------
@@ -578,7 +580,7 @@
 ; Add value at <argument2> to value at/of <argument1>, 
 ; store in <Result (address)>.
 ;
-; This provides a wrapper that figured out which math macro to call
+; This provides a wrapper that figures out which math macro to call
 ; simplifying the choice of M and V.
 ;
 ; If argument2 is a value less than 256 it will assume that argument2
@@ -736,7 +738,7 @@
 ; Subtract value at <argument2> from value at/of <argument1>, 
 ; store in <Result (address)>.
 ;
-; This provides a wrapper that figured out which math macro to call
+; This provides a wrapper that figures out which math macro to call
 ; simplifying the choice of M and V.
 ;
 ; If argument2 is a value less than 256 it will assume that argument2

@@ -46,6 +46,50 @@
 ; mByte_Abs
 ;
 ;===============================================================================
+; 8-BIT MATH - MULTIPLICATION
+;===============================================================================
+; mByte_Mult2_M ; ASL(M) = *2
+; mByte_Mult2_V
+; mByte_Mult2
+;
+; mByte_Mult3_M ; ASL(M) = *2 + M = *3
+; mByte_Mult3_V
+; mByte_Mult3
+;
+; mByte_Mult4_M ; ASL(ASL(M)) = *4
+; mByte_Mult4_V
+; mByte_Mult4
+;
+; mByte_Mult5_M ; ASL(ASL(M)) = *4 + M = *5
+; mByte_Mult5_V
+; mByte_Mult5
+;
+; mByte_Mult6_M ; ASL(M) = *2 + (ASL(ASL(M))) = *4) =*6
+; mByte_Mult6_V
+; mByte_Mult6
+; 
+; A Lookup table for 7 is practical as *3 + *4 the long way is a drag.
+; mByte_Mult7_M ; Y=M; A = Lookup,Y
+; mByte_Mult7_V
+; mByte_Mult7
+;
+; mByte_Mult8_M ; ASL(ASL(ASL(M))) = *8
+; mByte_Mult8_V
+; mByte_Mult8 
+;
+; mByte_Mult9_M ; ASL(ASL(ASL(M))) = *8 + M = *9
+; mByte_Mult9_V
+; mByte_Mult9
+;
+; mByte_Mult10_M ; ASL(M) = *2 + ASL(ASL(ASL(M))) = *8 = *10
+; mByte_Mult10_V
+; mByte_Mult10 
+;
+; mByte_Mult16_M ; ASL(ASL(ASL(ASL(M)))) = *16
+; mByte_Mult16_V
+; mByte_Mult26
+;
+;===============================================================================
 
 
 ;===============================================================================
@@ -65,8 +109,52 @@
 ; mWord_V_Sub_M
 ; mWord_M_Sub_M
 ; mWord_Sub
+;
 ;===============================================================================
-
+; 16-BIT MATH - MULTIPLICATION
+;===============================================================================
+; mWord_Mult2_M ; ASL(M) = *2
+; mWord_Mult2_V
+; mWord_Mult2
+;
+; mWord_Mult3_M ; ASL(M) = *2 + M = *3
+; mWord_Mult3_V
+; mWord_Mult3
+;
+; mWord_Mult4_M ; ASL(ASL(M)) = *4
+; mWord_Mult4_V
+; mWord_Mult4
+;
+; mWord_Mult5_M ; ASL(ASL(M)) = *4 + M = *5
+; mWord_Mult5_V
+; mWord_Mult5
+;
+; mWord_Mult6_M ; ASL(M) = *2 + (ASL(ASL(M))) = *4) =*6
+; mWord_Mult6_V
+; mWord_Mult6
+; 
+; A Lookup table for 7 is practical as *3 + *4 the long way is a drag.
+; mWord_Mult7_M ; Y=M; A = Lookup,Y
+; mWord_Mult7_V
+; mWord_Mult7
+;
+; mWord_Mult8_M ; ASL(ASL(ASL(M))) = *8
+; mWord_Mult8_V
+; mWord_Mult8 
+;
+; mWord_Mult9_M ; ASL(ASL(ASL(M))) = *8 + M = *9
+; mWord_Mult9_V
+; mWord_Mult9
+;
+; mWord_Mult10_M ; ASL(M) = *2 + ASL(ASL(ASL(M))) = *8 = *10
+; mWord_Mult10_V
+; mWord_Mult10 
+;
+; mWord_Mult16_M ; ASL(ASL(ASL(ASL(M)))) = *16
+; mWord_Mult16_V
+; mWord_Mult16
+;
+;===============================================================================
 
 
 ;===============================================================================

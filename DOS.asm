@@ -4,7 +4,7 @@
 ;=================================================
 ; Page 7+ -- DOS FMS, DUP.SYS
 ; $0700 = Start of free memory when DOS is not loaded.
-; Atari DOS2 speciications:
+; Atari DOS2 specifications:
 ; $0700 to $077C is 125 bytes of Boot Sector and DOS config
 ; $077D to $1501 is DOS/FMS
 ; $1540 to $3306 is DUP.SYS and end varies by number of drive buffers.
@@ -39,8 +39,10 @@ DINT =    $07E0 ; FMS Initialization routine.
 ;=================================================
 ; Misc values related to DOS and file loading
 ;
-LOMEM_DOS =     $2000 ; First usable memory after DOS
-LOMEM_DOS_DUP = $3308 ; First usable memory after DOS and DUP 
+; LOMEM_DOS =   $1CFC ; Default MEMLO (Mapping the Atari)
+; LOMEM_DOS =   $1D7C ; Nonresident Part of DUP (Mapping the Atari)
+LOMEM_DOS =     $2A80 ; First usable memory after DOS (Atari 800 Reference manual)
+LOMEM_DOS_DUP = $3307 ; First usable memory after DOS and DUP 
 ;
 ;=================================================
 ; Atari RUN ADDRESS.  
@@ -59,10 +61,10 @@ LOMEM_DOS_DUP = $3308 ; First usable memory after DOS and DUP
 ; a segment DOS calls that address immediately. If that routine
 ; returns to DOS cleanly then file loading continues.
 ;
-DOS_INIT_ADDR = $02e2 ;; Execute here immediately then resume loading.
+DOS_INIT_ADDR = $02E2 ; Execute here immediately then resume loading.
 ;
 ; If the contents of the RUN address changes DOS waits until
 ; all segments from the file are loaded and then calls the RUN
 ; address target.
 ;
-DOS_RUN_ADDR =  $02e0 ;; Execute here when file loading completes.
+DOS_RUN_ADDR =  $02E0 ; Execute here when file loading completes.
